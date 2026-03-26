@@ -1,0 +1,11 @@
+{
+  "name": "Pret Wallet",
+  "short_name": "Pret",
+  "description": "Pret Wallet web app",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FAFAFC",
+  "theme_color": "#FAFAFC",
+  "orientation": "portrait"
+}

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Pret - Wallet</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Pret">
+<meta name="theme-color" content="#FAFAFC">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root {
+    --red:   #862633;
+    --gold:  #8B7A35;
+    --bg:    #FAFAFC;
+    --white: #FFFFFF;
+    --text:  #1C1C1E;
+    --grey:  #8E8E93;
+    --sep:   #C8C7CC;
+    --green: #34C759;
+  }
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system,'SF Pro Text','Helvetica Neue',sans-serif;
+    overscroll-behavior: none;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .scroll {
+    flex:1; overflow-y:auto; overflow-x:hidden;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+    padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+  }
+  .scroll::-webkit-scrollbar { display:none; }
+  .qr-section {
+    display:flex; flex-direction:column; align-items:center;
+    padding:36px 0 0;
+  }
+  .qr-img {
+    display: block;
+    width: 220px;
+    max-width: 100%;
+    height: auto;
+  }
+  .qr-desc {
+    margin-top:24px; padding:0 28px;
+    font-size:16px; font-weight:400;
+    color:var(--text); line-height:1.5; text-align:center;
+  }
+  .card {
+    margin:20px 16px 0;
+    background:var(--white); border-radius:0; overflow:hidden;
+    box-shadow:0 1px 1px rgba(0,0,0,.06), 0 0 0 .5px rgba(0,0,0,.08);
+  }
+  .row {
+    position:relative; display:flex; align-items:center;
+    padding:0 16px; min-height:56px;
+    background:var(--white); cursor:pointer; transition:background .1s;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  .row:active { background:#f0f0f0; }
+  .row + .row::before {
+    content:''; position:absolute; top:0; left:16px; right:0;
+    height:.5px; background:var(--sep);
+  }
+  .row-subs {
+    flex-direction:column; align-items:flex-start;
+    justify-content:center; gap:3px;
+    padding-top:13px; padding-bottom:13px; padding-right:36px;
+  }
+  .subs-top { display:flex; align-items:center; width:100%; }
+  .subs-title { font-size:15px; font-weight:700; color:var(--text); }
+  .badge-active {
+    font-size:12px; font-weight:500;
+    color: #3a7a3a;
+    border: 1.5px solid #3a7a3a;
+    border-radius: 20px;
+    padding: 2px 11px;
+    white-space:nowrap; flex-shrink:0;
+    line-height:1.5;
+    background: transparent;
+    margin-left:auto;
+    margin-right:16px;
+  }
+  .subs-price { font-size:13px; font-weight:400; color:var(--grey); }
+  .abs-chev { position:absolute; right:16px; top:50%; transform:translateY(-50%); }
+  .perks-lbl { font-size:15px; font-weight:700; color:var(--text); flex:1; }
+  .chev { transition:transform .25s ease; }
+  .row-perks.expanded .chev { transform:rotate(0deg); }
+  .stars-wrap {
+    overflow:hidden; max-height:0;
+    transition:max-height .28s cubic-bezier(.4,0,.2,1);
+    position:relative;
+  }
+  .stars-wrap::before {
+    content:''; position:absolute; top:0; left:0; right:0;
+    height:.5px; background:var(--sep);
+  }
+  .stars-wrap.open { max-height:62px; }
+  .stars-inner { display:flex; height:58px; }
+  .stat {
+    flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
+    cursor:pointer; transition:background .1s;
+  }
+  .stat:active { background:#f0f0f0; }
+  .stat + .stat { border-left:.5px solid var(--sep); }
+  .stat-lbl { font-size:14px; font-weight:500; color:var(--text); }
+  .tabs {
+    position: fixed; bottom:0; left:0; right:0;
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+    background:rgba(249,249,249,.96);
+    backdrop-filter:blur(20px) saturate(180%);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    border-top:.5px solid rgba(0,0,0,.2);
+    display:flex; align-items:flex-start; padding-top:10px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    z-index:100;
+  }
+  .tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; }
+  .tab-ico { width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
+  .tab-lbl { font-size:10px; font-weight:500; color:var(--grey); letter-spacing:.05px; }
+  .tab.on .tab-lbl { color:var(--red); }
+  #iosTip.show { display: block !important; animation: slideUp .3s ease; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+  <div class="scroll">
+    <div class="qr-section">
+      <img class="qr-img" src="qr-wallet.png" width="220" alt="Wallet QR code, ID PRJ2V4K2XIAW" decoding="async">
+      <p class="qr-desc">Scan at the till to collect stars, redeem perks and use your Club Pret subscription. Cannot be used for in-shop payments.</p>
+    </div>
+    <div class="card">
+      <div class="row row-subs">
+        <div class="subs-top">
+          <span class="subs-title">Club Pret subscription</span>
+          <span class="badge-active">Active</span>
+        </div>
+        <span class="abs-chev">
+          <svg width="8" height="14" viewBox="0 0 9.3 16" fill="none">
+            <path d="M6.695 8L0 1.299 1.298 0 9.291 8 1.298 16 0 14.701z" fill="#1C1C1E"/>
+          </svg>
+        </span>
+      </div>
+      <div class="row row-perks expanded" id="perksRow">
+        <span class="perks-lbl">Pret Perks update</span>
+        <span class="abs-chev">
+          <svg class="chev" width="8" height="14" viewBox="0 0 9.3 16" fill="none">
+            <path d="M6.695 8L0 1.299 1.298 0 9.291 8 1.298 16 0 14.701z" fill="#1C1C1E"/>
+          </svg>
+        </span>
+      </div>
+      <div class="stars-wrap open" id="starsWrap">
+        <div class="stars-inner">
+          <div class="stat">
+            <svg width="20" height="20" viewBox="0 0 24 24.4" fill="none">
+              <path d="M12.036.75L8.822 10.151H0l7.131 4.941-2.715 8.493 7.62-4.932 7.683 4.994-2.733-8.555L24 10.151H15.241z" fill="#862633"/>
+            </svg>
+            <span class="stat-lbl">5/10 stars</span>
+          </div>
+          <div class="stat">
+            <svg width="20" height="20" viewBox="0 0 24 24.4" fill="none">
+              <path d="M12.036.75L8.822 10.151H0l7.131 4.941-2.715 8.493 7.62-4.932 7.683 4.994-2.733-8.555L24 10.151H15.241z" fill="#8B7A35"/>
+            </svg>
+            <span class="stat-lbl">0 perks</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab">
+      <div class="tab-ico">
+        <svg width="24" height="22" viewBox="0 0 23.6 21" fill="none">
+          <path d="M2 10.364L9.723 3.928a2.7 2.7 0 013.19 0L21.636 10.364" stroke="#636366" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+          <path d="M4.455 7.91v10.636A2.455 2.455 0 006.91 21h9.818a2.455 2.455 0 002.455-2.454V7.91" stroke="#636366" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </div>
+      <span class="tab-lbl">Home</span>
+    </div>
+    <div class="tab">
+      <div class="tab-ico">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M8.5 8V6.6C8.5 4.95 9.84 3.6 11.5 3.6h1c1.66 0 3 1.35 3 3V8" stroke="#636366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="4.5" y="8" width="15" height="12.5" rx="1.6" stroke="#636366" stroke-width="2"/>
+          <path d="M12 12.1l1.02 2.1 2.33.34-1.68 1.63.4 2.3L12 17.4l-2.07 1.08.4-2.3-1.68-1.63 2.33-.34L12 12.1z" fill="#636366"/>
+        </svg>
+      </div>
+      <span class="tab-lbl">Order</span>
+    </div>
+    <div class="tab on">
+      <div class="tab-ico">
+        <svg width="25" height="25" viewBox="0 0 24 24" fill="none">
+          <path d="M3 4C3 3.448 3.448 3 4 3h1.7v2.7H3V4z" fill="#862633"/>
+          <path d="M8.4 3h1.7C10.652 3 11.1 3.448 11.1 4v1.7H8.4V3z" fill="#862633"/>
+          <rect x="5.7" y="5.7" width="2.7" height="2.7" fill="#862633"/>
+          <path d="M3 8.4h2.7v2.7H4C3.448 11.1 3 10.652 3 10.1V8.4z" fill="#862633"/>
+          <path d="M8.4 8.4h2.7v1.7c0 .552-.448 1-1 1H8.4V8.4z" fill="#862633"/>
+          <path fill-rule="evenodd" d="M14.7 3H19.2C20.194 3 21 3.806 21 4.8V9.3c0 .994-.806 1.8-1.8 1.8H14.7c-.994 0-1.8-.806-1.8-1.8V4.8C12.9 3.806 13.706 3 14.7 3zm0 1.8V9.3H19.2V4.8H14.7z" fill="#862633"/>
+          <path fill-rule="evenodd" d="M9.3 12.9H4.8C3.806 12.9 3 13.706 3 14.7V19.2C3 20.194 3.806 21 4.8 21H9.3c.994 0 1.8-.806 1.8-1.8V14.7c0-.994-.806-1.8-1.8-1.8zm-4.5 1.8V19.2H9.3V14.7H4.8z" fill="#862633"/>
+          <path d="M16.962 12.9l1.084 3.329H21l-2.363 1.743.919 3.028-2.594-1.766-2.571 1.748.919-3.028L12.9 16.229h2.877z" fill="#862633"/>
+        </svg>
+      </div>
+      <span class="tab-lbl">Wallet</span>
+    </div>
+    <div class="tab">
+      <div class="tab-ico">
+        <svg width="22" height="24" viewBox="10 4 21 32" fill="none">
+          <path d="M20.5 4C14.704 4 10 8.898 10 14.935 10 20.977 20.5 36 20.5 36S31 20.971 31 14.935C31 8.898 26.302 4 20.5 4zm2.784 14.712L20.5 16.843l-2.784 1.852 1.02-3.222-2.629-1.869h3.232l1.164-3.562 1.18 3.579h3.164l-2.528 1.869z" fill="none" stroke="#636366" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="tab-lbl">Shops</span>
+    </div>
+    <div class="tab">
+      <div class="tab-ico">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-4.93 16.28c.43-.9 3.05-1.78 4.93-1.78s4.51.88 4.93 1.78C15.57 19.36 13.86 20 12 20s-3.57-.64-4.93-1.72zm11.29-1.45c-1.43-1.74-4.9-2.33-6.36-2.33s-4.93.59-6.36 2.33C4.62 15.49 4 13.82 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8c0 1.82-.62 3.49-1.64 4.83zM12 6c-1.94 0-3.5 1.56-3.5 3.5S10.06 13 12 13s3.5-1.56 3.5-3.5S13.94 6 12 6zm0 5c-.83 0-1.5-.67-1.5-1.5S11.17 8 12 8s1.5.67 1.5 1.5S12.83 11 12 11z" fill="#636366"/>
+        </svg>
+      </div>
+      <span class="tab-lbl">Account</span>
+    </div>
+  </div>
+
+  <div id="iosTip" style="display:none;position:fixed;bottom:calc(64px + env(safe-area-inset-bottom,0px) + 10px);left:12px;right:12px;background:#1C1C1E;color:white;border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.5;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,.4);">
+    <strong style="display:block;font-size:14px;margin-bottom:4px;">Add to Home Screen</strong>
+    Tap the Share button then <strong>"Add to Home Screen"</strong> to install Pret as an app.
+    <span id="iosDismiss" style="display:block;margin-top:10px;text-align:right;color:#0A84FF;font-weight:600;cursor:pointer;">Got it</span>
+  </div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('sw.js?v=6');
+      reg.update();
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          window.location.reload();
+        }, { once: true });
+      }
+    } catch (_) {}
+  });
+}
+
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+if (isIOS && !isStandalone && !localStorage.getItem('iosTipDone')) {
+  setTimeout(() => {
+    const tip = document.getElementById('iosTip');
+    if (tip) tip.classList.add('show');
+  }, 2500);
+}
+const iosDismiss = document.getElementById('iosDismiss');
+if (iosDismiss) {
+  iosDismiss.addEventListener('click', () => {
+    const tip = document.getElementById('iosTip');
+    if (tip) tip.classList.remove('show');
+    localStorage.setItem('iosTipDone','1');
+  });
+}
+</script>
+</body>
+</html>
