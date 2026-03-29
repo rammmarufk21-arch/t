@@ -1,9 +1,21 @@
-const CACHE_NAME = "pret-wallet-v5";
+const CACHE_NAME = "pret-wallet-v20";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./qr-wallet.png"
+  "./qr-wallet.png",
+  "./assets/fonts/sofia_pro_regular.otf",
+  "./assets/fonts/sofia_pro_semi_bold.otf",
+  "./assets/fonts/sofia_pro_bold.otf",
+  "./assets/icons/icon-192.png",
+  "./assets/icons/icon-512.png",
+  "./assets/icons/tab-home.png",
+  "./assets/icons/tab-order.png",
+  "./assets/icons/tab-order-active.png",
+  "./assets/icons/tab-wallet.png",
+  "./assets/icons/tab-shops.png",
+  "./assets/icons/tab-account.png",
+  "./assets/icons/tab-account-active.png"
 ];
 
 self.addEventListener("install", (event) => {

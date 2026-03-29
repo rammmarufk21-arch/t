@@ -3,45 +3,110 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Pret - Wallet</title>
+<title>Pret — Wallet</title>
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+<meta name="description" content="Pret Wallet — scan your QR at the till for stars, perks, and Club Pret.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Pret">
-<meta name="theme-color" content="#FAFAFC">
+<meta name="theme-color" content="#FFFFFF">
 <style>
+  /* Sofia Pro — brand typeface */
+  @font-face {
+    font-family: 'Sofia Pro';
+    src: url('assets/fonts/sofia_pro_regular.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Sofia Pro';
+    src: url('assets/fonts/sofia_pro_semi_bold.otf') format('opentype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Sofia Pro';
+    src: url('assets/fonts/sofia_pro_bold.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+  }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   :root {
     --red:   #862633;
     --gold:  #8B7A35;
-    --bg:    #FAFAFC;
+    --bg:    #F2F2F7;
     --white: #FFFFFF;
+    --header-bg: #FFFFFF;
     --text:  #1C1C1E;
     --grey:  #8E8E93;
-    --sep:   #C8C7CC;
+    --sep:   rgba(60, 60, 67, 0.29);
     --green: #34C759;
+    --tabbar-line: rgba(60, 60, 67, 0.29);
   }
   html, body {
     height: 100%;
     background: var(--bg);
     display: flex;
     flex-direction: column;
-    font-family: -apple-system,'SF Pro Text','Helvetica Neue',sans-serif;
+    font-family: 'Sofia Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
     overscroll-behavior: none;
     padding-top: 0px;
     padding-left: env(safe-area-inset-left, 0px);
     padding-right: env(safe-area-inset-right, 0px);
   }
+  /* White strip aligned with the iOS status bar (time / Dynamic Island region); no logo. */
+  .status-bar-chrome {
+    flex-shrink: 0;
+    height: env(safe-area-inset-top, 0px);
+    min-height: env(safe-area-inset-top, 0px);
+    background: var(--header-bg);
+    border-bottom: 0.5px solid var(--sep);
+    z-index: 50;
+  }
   .scroll {
-    flex:1; overflow-y:auto; overflow-x:hidden;
-    -webkit-overflow-scrolling:touch; scrollbar-width:none;
-    padding-top: env(safe-area-inset-top, 0px);
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-top: 0;
     padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px));
   }
   .scroll::-webkit-scrollbar { display:none; }
+  .tab-panel { display: none; }
+  /* Center main content vertically in the area above the tab bar */
+  .tab-panel.active {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+    /* Above vertical center — increase to move block higher */
+    padding-bottom: 96px;
+  }
+  .tab-placeholder {
+    min-height: 42vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    color: var(--grey);
+    font-size: 15px;
+    font-weight: 600;
+  }
   .qr-section {
     display:flex; flex-direction:column; align-items:center;
-    padding:76px 0 0;
+    padding: 16px 0 0;
+    flex-shrink: 0;
   }
   .qr-img {
     display: block;
@@ -52,10 +117,15 @@
   .qr-desc {
     margin-top:24px; padding:0 28px;
     font-size:16px; font-weight:400;
-    color:var(--text); line-height:1.5; text-align:center;
+    color:var(--text); line-height:1.5;
+    text-align: justify;
+    text-align-last: center;
+    hyphens: auto;
+    -webkit-hyphens: auto;
   }
   .card {
-    margin:20px 16px 0;
+    margin: 20px 16px 0;
+    flex-shrink: 0;
     background:var(--white); border-radius:0; overflow:hidden;
     box-shadow:0 1px 1px rgba(0,0,0,.06), 0 0 0 .5px rgba(0,0,0,.08);
   }
@@ -79,7 +149,7 @@
   .subs-top { display:flex; align-items:center; width:100%; }
   .subs-title { font-size:15px; font-weight:700; color:var(--text); }
   .badge-active {
-    font-size:12px; font-weight:500;
+    font-size:12px; font-weight:600;
     color: #3a7a3a;
     border: 1.5px solid #3a7a3a;
     border-radius: 20px;
@@ -112,33 +182,79 @@
   }
   .stat:active { background:#f0f0f0; }
   .stat + .stat { border-left:.5px solid var(--sep); }
-  .stat-lbl { font-size:14px; font-weight:500; color:var(--text); }
+  .stat-lbl { font-size:14px; font-weight:600; color:var(--text); }
   .tabs {
     position: fixed; bottom:0; left:0; right:0;
     height: calc(64px + env(safe-area-inset-bottom, 0px));
-    background:rgba(249,249,249,.96);
-    backdrop-filter:blur(20px) saturate(180%);
-    -webkit-backdrop-filter:blur(20px) saturate(180%);
-    border-top:.5px solid rgba(0,0,0,.2);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-top: 0.5px solid var(--tabbar-line);
     display:flex; align-items:flex-start; padding-top:10px;
     padding-bottom: env(safe-area-inset-bottom, 0px);
     z-index:100;
   }
   .tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; }
-  .tab-ico { width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
-  .tab-lbl { font-size:10px; font-weight:500; color:var(--grey); letter-spacing:.05px; }
+  .tab-ico {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .tab-ico img {
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  .tab-ico-single img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    display: block;
+  }
+  /* All tab icons stay dark; selection is label-only (red text). */
+  .tabs .tab-ico img {
+    opacity: 1;
+    filter: grayscale(1) brightness(0.42);
+  }
+  .tab[data-tab="wallet"] .tab-ico img {
+    filter: none;
+  }
+  .tab-ico-dual { width: 28px; height: 28px; }
+  .tab-ico-dual img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+  .tab-ico-dual .ico-on { display: none !important; }
+  .tab-ico-dual .ico-off { display: block !important; }
+  .tab-lbl { font-size:10px; font-weight:600; color:var(--grey); letter-spacing:.02em; }
   .tab.on .tab-lbl { color:var(--red); }
   #iosTip.show { display: block !important; animation: slideUp .3s ease; }
   @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 </style>
 </head>
 <body>
+  <div class="status-bar-chrome" aria-hidden="true"></div>
   <div class="scroll">
-    <div class="qr-section">
-      <img class="qr-img" src="qr-wallet.png" width="120" alt="Wallet QR code, ID PRJ2V4K2XIAW" decoding="async">
-      <p class="qr-desc">Scan at the till to collect stars, redeem perks and use your Club Pret subscription. Cannot be used for in-shop payments.</p>
+    <div id="panel-home" class="tab-panel" role="tabpanel" aria-hidden="true" hidden>
+      <div class="tab-placeholder">Home</div>
     </div>
-    <div class="card">
+    <div id="panel-order" class="tab-panel" role="tabpanel" aria-hidden="true" hidden>
+      <div class="tab-placeholder">Order</div>
+    </div>
+    <div id="panel-wallet" class="tab-panel active" role="tabpanel" aria-hidden="false">
+      <div class="qr-section">
+        <img class="qr-img" src="qr-wallet.png" width="120" alt="Wallet QR code" decoding="async">
+        <p class="qr-desc">Scan at the till to collect stars, redeem perks and use your Club Pret subscription. Cannot be used for in-shop payments.</p>
+      </div>
+      <div class="card">
       <div class="row row-subs">
         <div class="subs-top">
           <span class="subs-title">Club Pret subscription</span>
@@ -175,56 +291,45 @@
         </div>
       </div>
     </div>
+    </div>
+    <div id="panel-shops" class="tab-panel" role="tabpanel" aria-hidden="true" hidden>
+      <div class="tab-placeholder">Shops</div>
+    </div>
+    <div id="panel-account" class="tab-panel" role="tabpanel" aria-hidden="true" hidden>
+      <div class="tab-placeholder">Account</div>
+    </div>
   </div>
 
-  <div class="tabs">
-    <div class="tab">
-      <div class="tab-ico">
-        <svg width="24" height="22" viewBox="0 0 23.6 21" fill="none">
-          <path d="M2 10.364L9.723 3.928a2.7 2.7 0 013.19 0L21.636 10.364" stroke="#636366" stroke-width="1.6" stroke-linecap="round" fill="none"/>
-          <path d="M4.455 7.91v10.636A2.455 2.455 0 006.91 21h9.818a2.455 2.455 0 002.455-2.454V7.91" stroke="#636366" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
-        </svg>
+  <div class="tabs" role="tablist">
+    <div class="tab" data-tab="home" role="tab" tabindex="-1" aria-selected="false">
+      <div class="tab-ico tab-ico-single">
+        <img src="assets/icons/tab-home.png" width="28" height="28" alt="" aria-hidden="true">
       </div>
       <span class="tab-lbl">Home</span>
     </div>
-    <div class="tab">
-      <div class="tab-ico">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M8.5 8V6.6C8.5 4.95 9.84 3.6 11.5 3.6h1c1.66 0 3 1.35 3 3V8" stroke="#636366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="4.5" y="8" width="15" height="12.5" rx="1.6" stroke="#636366" stroke-width="2"/>
-          <path d="M12 12.1l1.02 2.1 2.33.34-1.68 1.63.4 2.3L12 17.4l-2.07 1.08.4-2.3-1.68-1.63 2.33-.34L12 12.1z" fill="#636366"/>
-        </svg>
+    <div class="tab" data-tab="order" role="tab" tabindex="-1" aria-selected="false">
+      <div class="tab-ico tab-ico-dual">
+        <img class="ico-off" src="assets/icons/tab-order.png" width="28" height="28" alt="" aria-hidden="true">
+        <img class="ico-on" src="assets/icons/tab-order-active.png" width="28" height="28" alt="" aria-hidden="true">
       </div>
       <span class="tab-lbl">Order</span>
     </div>
-    <div class="tab on">
-      <div class="tab-ico">
-        <svg width="25" height="25" viewBox="0 0 24 24" fill="none">
-          <path d="M3 4C3 3.448 3.448 3 4 3h1.7v2.7H3V4z" fill="#862633"/>
-          <path d="M8.4 3h1.7C10.652 3 11.1 3.448 11.1 4v1.7H8.4V3z" fill="#862633"/>
-          <rect x="5.7" y="5.7" width="2.7" height="2.7" fill="#862633"/>
-          <path d="M3 8.4h2.7v2.7H4C3.448 11.1 3 10.652 3 10.1V8.4z" fill="#862633"/>
-          <path d="M8.4 8.4h2.7v1.7c0 .552-.448 1-1 1H8.4V8.4z" fill="#862633"/>
-          <path fill-rule="evenodd" d="M14.7 3H19.2C20.194 3 21 3.806 21 4.8V9.3c0 .994-.806 1.8-1.8 1.8H14.7c-.994 0-1.8-.806-1.8-1.8V4.8C12.9 3.806 13.706 3 14.7 3zm0 1.8V9.3H19.2V4.8H14.7z" fill="#862633"/>
-          <path fill-rule="evenodd" d="M9.3 12.9H4.8C3.806 12.9 3 13.706 3 14.7V19.2C3 20.194 3.806 21 4.8 21H9.3c.994 0 1.8-.806 1.8-1.8V14.7c0-.994-.806-1.8-1.8-1.8zm-4.5 1.8V19.2H9.3V14.7H4.8z" fill="#862633"/>
-          <path d="M16.962 12.9l1.084 3.329H21l-2.363 1.743.919 3.028-2.594-1.766-2.571 1.748.919-3.028L12.9 16.229h2.877z" fill="#862633"/>
-        </svg>
+    <div class="tab on" data-tab="wallet" role="tab" tabindex="0" aria-selected="true">
+      <div class="tab-ico tab-ico-single">
+        <img src="assets/icons/tab-wallet.png" width="28" height="28" alt="" aria-hidden="true">
       </div>
       <span class="tab-lbl">Wallet</span>
     </div>
-    <div class="tab">
-      <div class="tab-ico">
-        <svg width="22" height="24" viewBox="10 4 21 32" fill="none">
-          <path d="M20.5 4C14.704 4 10 8.898 10 14.935 10 20.977 20.5 36 20.5 36S31 20.971 31 14.935C31 8.898 26.302 4 20.5 4zm2.784 14.712L20.5 16.843l-2.784 1.852 1.02-3.222-2.629-1.869h3.232l1.164-3.562 1.18 3.579h3.164l-2.528 1.869z" fill="none" stroke="#636366" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
-        </svg>
+    <div class="tab" data-tab="shops" role="tab" tabindex="-1" aria-selected="false">
+      <div class="tab-ico tab-ico-single">
+        <img src="assets/icons/tab-shops.png" width="28" height="28" alt="" aria-hidden="true">
       </div>
       <span class="tab-lbl">Shops</span>
     </div>
-    <div class="tab">
-      <div class="tab-ico">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-4.93 16.28c.43-.9 3.05-1.78 4.93-1.78s4.51.88 4.93 1.78C15.57 19.36 13.86 20 12 20s-3.57-.64-4.93-1.72zm11.29-1.45c-1.43-1.74-4.9-2.33-6.36-2.33s-4.93.59-6.36 2.33C4.62 15.49 4 13.82 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8c0 1.82-.62 3.49-1.64 4.83zM12 6c-1.94 0-3.5 1.56-3.5 3.5S10.06 13 12 13s3.5-1.56 3.5-3.5S13.94 6 12 6zm0 5c-.83 0-1.5-.67-1.5-1.5S11.17 8 12 8s1.5.67 1.5 1.5S12.83 11 12 11z" fill="#636366"/>
-        </svg>
+    <div class="tab" data-tab="account" role="tab" tabindex="-1" aria-selected="false">
+      <div class="tab-ico tab-ico-dual">
+        <img class="ico-off" src="assets/icons/tab-account.png" width="28" height="28" alt="" aria-hidden="true">
+        <img class="ico-on" src="assets/icons/tab-account-active.png" width="28" height="28" alt="" aria-hidden="true">
       </div>
       <span class="tab-lbl">Account</span>
     </div>
@@ -237,10 +342,43 @@
   </div>
 
 <script>
+(function () {
+  const names = ['home', 'order', 'wallet', 'shops', 'account'];
+  const tabs = document.querySelectorAll('.tabs .tab[data-tab]');
+  const panels = {};
+  names.forEach((id) => {
+    panels[id] = document.getElementById('panel-' + id);
+  });
+
+  function selectTab(name) {
+    if (!names.includes(name)) return;
+    tabs.forEach((t) => {
+      const on = t.getAttribute('data-tab') === name;
+      t.classList.toggle('on', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.setAttribute('tabindex', on ? '0' : '-1');
+    });
+    names.forEach((id) => {
+      const p = panels[id];
+      if (!p) return;
+      const show = id === name;
+      p.classList.toggle('active', show);
+      p.setAttribute('aria-hidden', show ? 'false' : 'true');
+      if (show) p.removeAttribute('hidden');
+      else p.setAttribute('hidden', '');
+    });
+  }
+
+  tabs.forEach((t) => {
+    t.addEventListener('click', () => selectTab(t.getAttribute('data-tab')));
+  });
+  selectTab('wallet');
+})();
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('sw.js?v=6');
+      const reg = await navigator.serviceWorker.register('sw.js?v=20');
       reg.update();
       if (navigator.serviceWorker.controller) {
         navigator.serviceWorker.addEventListener('controllerchange', () => {
